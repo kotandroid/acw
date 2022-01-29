@@ -1,11 +1,14 @@
 package com.acw.android.criminalintent
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import java.util.*
 
-data class Crime(val id: UUID = UUID.randomUUID(),
+@Entity
+data class Crime(@PrimaryKey val id: UUID = UUID.randomUUID(),
                  var title: String = "",
                  var date: Date = Date(),
-                 var isSolved: Boolean = false,
-                 var requiresPolice:Int=0
+                 var isSolved: Boolean = false
+                // var requiresPolice:Int=0
 
 )
