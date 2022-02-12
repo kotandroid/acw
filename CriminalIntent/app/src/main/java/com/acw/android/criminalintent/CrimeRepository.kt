@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.acw.android.criminalintent.database.CrimeDatabase
 import com.acw.android.criminalintent.database.migration_1_2
+import java.io.File
 import java.lang.IllegalStateException
 import java.util.*
 import java.util.concurrent.Executors
@@ -30,6 +31,7 @@ class CrimeRepository private constructor(context:Context){
 
     private val crimeDao=database.crimeDao()
     private val executor= Executors.newSingleThreadExecutor() // 독립된 실행공간을 보장받는 thread 생성
+    private val filesDir=context.applicationContext.filesDir
 
 
     fun getCrimes(): LiveData<List<Crime>> = crimeDao.getCrimes()
@@ -44,6 +46,9 @@ class CrimeRepository private constructor(context:Context){
             crimeDao.addCrime(crime)
         }
     }
+
+    fun getPhotoFile(crime : Crime):File=File(filesDir,crime.photoFileName)
+    //photoFileName이 참조하는 파일의 경로를 return 한다.
 
     companion object{// singleton pattern 으로 Repository 초기화하기
         private var INSTANCE:CrimeRepository?=null

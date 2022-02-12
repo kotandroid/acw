@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.acw.android.criminalintent">
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
+
+    <uses-feature android:name="android.hardware.camera"
+            android:required="false"/>
+    <!--시스템에 이 앱이 카메라를 사용한다고 알려준다. required속성은 이 기능이 없을 경우 앱이 실행될 수 있는 지 없는지를 지정하는데, false로 지정하면 그 기능이 없더라도 앱을 사용하는데는
+    무리가 없을 경우에 지정하여 사용한다. -->
+
     <application
         android:name=".CriminalIntentApplication"
         android:allowBackup="false"
@@ -17,6 +23,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.acw.android.criminalintent.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/files"
+                />
+            <!--개인 스토리지의 root경로를 @xml/files에 적혀있는 것으로 mapping한다. 현재 files에는 crime_photos로 mapping하도록 작성되어 있다.-->
+
+
+        </provider>
 
     </application>
 

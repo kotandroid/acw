@@ -2,12 +2,14 @@ package com.acw.android.criminalintent
 
 import android.app.Activity
 import android.app.ActivityManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
 import android.text.format.DateFormat
@@ -15,14 +17,14 @@ import android.text.format.DateFormat.format
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.EditText
-import android.widget.Toast
+import android.view.ViewTreeObserver
+import android.widget.*
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.Observer
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.time.hours
@@ -30,10 +32,12 @@ import kotlin.time.toDuration
 
 private const val DIALOG_DATE="DialogDate" //dialog를 식별하기 위한 인자
 private const val DIALOG_TIME="DialogTime"
+private const val PHOTO_PATH="photo_path"
 private const val REQUEST_DATE=0
 private const val REQUEST_TIME=1
 private const val REQUEST_CONTACT_NAME=2
-private const val REQUEST_CONTACT_NUM=3
+private const val REQUEST_PHOTO=3
+
 private const val ARG_CRIME_ID="crime_id"
 private const val DATE_FORMAT="yyyy년 M월 d일 H시 m분, E요일"
 
@@ -49,12 +53,21 @@ class CrimeFragment() : Fragment(),DatePickerFragment.Callbacks,TimePickerFragme
     private lateinit var suspectButton:Button
     private lateinit var callButton:Button
     private lateinit var callIntent:Intent
-
+    private lateinit var photoButton:ImageButton
+    private lateinit var photoView:ImageView
+    private lateinit var photoFile:File
+    private lateinit var photoUri:Uri
+    private lateinit var title_area:LinearLayout
+    private var callbacks: CrimeFragment.Callbacks?=null
+    private  var width_photo=0
+    private  var height_photo=0
     private val crimeDetailViewModel:CrimeDetailViewModel by lazy{
         ViewModelProvider(this).get(CrimeDetailViewModel::class.java)
     }
 
-
+    interface Callbacks{
+        fun onPhotoSelected(photoFile:File)
+    }
     constructor(crimeId: UUID) : this() {
         val args=Bundle().apply{
             putSerializable(ARG_CRIME_ID,crimeId)
@@ -76,6 +89,15 @@ class CrimeFragment() : Fragment(),DatePickerFragment.Callbacks,TimePickerFragme
     }
 
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        callbacks=context as CrimeFragment.Callbacks?
+        //activity의 context를 callback에 할당
+        //activity는 context의 서브 클래스이다. 따라서 인자로 activity를 전달해도 무방하다.(but activity를 전달하는 onAttach는 향후 버전에서 deprecated될 확률있음)
+        //context를 Callbacks type으로 할당하여 반드시 Callbacks interface를 구현하도록 했다.
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         crime = Crime()
@@ -91,11 +113,31 @@ class CrimeFragment() : Fragment(),DatePickerFragment.Callbacks,TimePickerFragme
             Observer{ crime->
                 crime?.let{
                     this.crime=crime
+                    photoFile=crimeDetailViewModel.getPhotoFile(crime)
+                    photoUri=FileProvider.getUriForFile(requireActivity(),"com.acw.android.criminalintent.fileprovider",photoFile)
+                    //photoFile은 file의 경로이고, 이를 이용해 카메라가 이해할 수 있게 경로를 URI로 변경한다.
                     updateUI()
                 }
             }
         )
+        photoView.viewTreeObserver.addOnGlobalLayoutListener (object :ViewTreeObserver.OnGlobalLayoutListener{
+            override fun onGlobalLayout() {
+                width_photo=photoView.width
+                height_photo=photoView.height
+            }
 
+        } )
+
+    }
+    private fun updatePhotoView(){
+        if(photoFile.exists()){
+            val bitmap=getScaledBitmap(photoFile.path,requireActivity())
+
+            photoView.setImageBitmap(bitmap)
+        }
+        else{
+            photoView.setImageDrawable(null)
+        }
     }
     private fun updateUI(){
         titleField.setText(crime.title)
@@ -109,6 +151,8 @@ class CrimeFragment() : Fragment(),DatePickerFragment.Callbacks,TimePickerFragme
         if(crime.suspect.isNotEmpty()){
             suspectButton.text=crime.suspect
         }
+        updatePhotoView()
+
     }
     private fun getCrimeReport():String{
         val solvedString=if(crime.isSolved){
@@ -140,6 +184,8 @@ class CrimeFragment() : Fragment(),DatePickerFragment.Callbacks,TimePickerFragme
         reportbutton=view.findViewById(R.id.crime_report) as Button
         suspectButton=view.findViewById(R.id.crime_suspect) as Button
         callButton=view.findViewById(R.id.crime_call) as Button
+        photoButton=view.findViewById(R.id.crime_camera) as ImageButton
+        photoView=view.findViewById(R.id.crime_photo) as ImageView
 
         /*dateButton.apply {
             text = crime.date.toString()
@@ -249,6 +295,39 @@ class CrimeFragment() : Fragment(),DatePickerFragment.Callbacks,TimePickerFragme
                 }
             }
         }
+        photoView.apply{
+            setOnClickListener{
+                callbacks?.onPhotoSelected(photoFile)
+            }
+        }
+        photoButton.apply{
+            val packageManager:PackageManager=requireActivity().packageManager
+            //packagemanager는 안드로이드에 설치된 모든 component와 activity의 정보를 알고 있다.
+            val captureImage=Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            val resolvedActivity:ResolveInfo?=
+                packageManager.resolveActivity(captureImage,PackageManager.MATCH_DEFAULT_ONLY)// resolveActivity(Intent,int)
+            //resolve activity를 사용해, captureImage인텐트에 맞는 행동을 해줄 액티비티를 찾고, 플래그로도 제한을 걸 수 있다.
+            // 여기서는 MATCH_DEFAULT_ONLY로 category default가 매니페스트 인텐트 필터에 정의된 액티비티만 검색한다.
+            //startActivity(Intent)와 동일하다.
+
+            if(resolvedActivity==null){
+                isEnabled=false
+            }
+
+            setOnClickListener{
+                Toast.makeText(context,"ss",Toast.LENGTH_SHORT).show()
+                captureImage.putExtra(MediaStore.EXTRA_OUTPUT,photoUri)
+                val cameraActivities:List<ResolveInfo> = packageManager.queryIntentActivities(captureImage,PackageManager.MATCH_DEFAULT_ONLY)
+
+                for(cameraActivity in cameraActivities){
+                    requireActivity().grantUriPermission(
+                        cameraActivity.activityInfo.packageName,photoUri,Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    //photo uri가 가리키는 위치에 사진 파일을 쓰려면 카메라 앱 퍼미션이 필요하다
+                    )
+                }
+                startActivityForResult(captureImage, REQUEST_PHOTO)
+            }
+        }
     }
 
 
@@ -275,12 +354,7 @@ class CrimeFragment() : Fragment(),DatePickerFragment.Callbacks,TimePickerFragme
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when{
             resultCode!= Activity.RESULT_OK -> return
-
             requestCode== REQUEST_CONTACT_NAME && data !=null ->{
-
-
-
-
 
                 val contactUri: Uri =data.data?:return
                 //콘텐츠 제공자의 table 담고 있다.
@@ -306,7 +380,6 @@ class CrimeFragment() : Fragment(),DatePickerFragment.Callbacks,TimePickerFragme
                 )
 
 
-
                 cursor_name?.use{
                     if(it.count==0){
                         return
@@ -329,6 +402,16 @@ class CrimeFragment() : Fragment(),DatePickerFragment.Callbacks,TimePickerFragme
                 }
 
             }
+            requestCode== REQUEST_PHOTO ->{
+                requireActivity().revokeUriPermission(photoUri,Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                //앞서 카메라에서 photoUri에 파일을 쓰기 위해 권한을 부여했었는데 쓰고나서 권한 회수를 한다.
+                updatePhotoView()
+            }
         }
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        requireActivity().revokeUriPermission(photoUri,Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
     }
 }
