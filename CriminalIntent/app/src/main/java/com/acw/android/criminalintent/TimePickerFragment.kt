@@ -53,12 +53,12 @@ class TimePickerFragment :DialogFragment(){
     }
 
     companion object{
-        fun newInstance(date:Date):DatePickerFragment{
+        fun newInstance(date:Date):TimePickerFragment{
             val args=Bundle().apply{
                 putSerializable(ARG_TIME,date)
             }
 
-            return DatePickerFragment().apply{
+            return TimePickerFragment().apply{
                 arguments=args
             }
         }

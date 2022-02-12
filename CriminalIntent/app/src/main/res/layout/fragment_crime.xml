@@ -38,4 +38,22 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/crime_solved_label"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="용의자 선택"
+        android:id="@+id/crime_suspect"
+        />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="범죄 보고서 전송"
+        android:id="@+id/crime_report"
+        />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/crime_call"
+        android:text="@string/crime_call"
+        />
 </LinearLayout>

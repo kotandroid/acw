@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.acw.android.criminalintent.database.CrimeDatabase
+import com.acw.android.criminalintent.database.migration_1_2
 import java.lang.IllegalStateException
 import java.util.*
 import java.util.concurrent.Executors
@@ -25,7 +26,8 @@ class CrimeRepository private constructor(context:Context){
         context.applicationContext, //database가 사용될 context(application의 context)
         CrimeDatabase::class.java, // room으로 생성하고자하는 database class
         DATABASE_NAME // db이름
-    ).build()
+    ).addMigrations(migration_1_2).build()
+
     private val crimeDao=database.crimeDao()
     private val executor= Executors.newSingleThreadExecutor() // 독립된 실행공간을 보장받는 thread 생성
 
@@ -46,6 +48,7 @@ class CrimeRepository private constructor(context:Context){
     companion object{// singleton pattern 으로 Repository 초기화하기
         private var INSTANCE:CrimeRepository?=null
 
+        //singleton 패턴 사용하여 repostory는 app내에서 하나의 instance만 유지시킨다.
         fun initialize(context:Context){
             if(INSTANCE==null){
                 INSTANCE= CrimeRepository(context);

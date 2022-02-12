@@ -20,11 +20,11 @@ class MainActivity : AppCompatActivity(),CrimeListFragment.Callbacks {
         if (currentFragment == null) {
 
             val fragment = CrimeListFragment.newInstance()
-            //val fragment =CrimeListFragment()
                 supportFragmentManager
                 .beginTransaction()
                 .add(R.id.fragment_container, fragment)
                 .commit()
+            //crimelistfragment를 생성해서 fragment_container에 transaction
         }
     }
     override fun onCrimeSelected(crimeId: UUID){
@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity(),CrimeListFragment.Callbacks {
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.fragment_container,fragment)
-            .addToBackStack(null)
+            .addToBackStack(null) // backStack에 추가하여 crimelist를 다시 역 transaction함과 동시에 viewmodel도 유지시킬 수 있다.
             .commit()
     }
 
