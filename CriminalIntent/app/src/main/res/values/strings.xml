@@ -17,6 +17,6 @@
     <string name ="crime_report_suspect">용의자는 %s.</string>
     <string name ="crime_report_subject">CriminalIntent 범죄 보고서</string>
     <string name ="send_report">범죄 보고서 전송</string>
-    <string name="crime_call">%s에게 전화 걸기</string>
+    <string name="crime_call">%1$s에게 전화 걸기</string>
 
 </resources>

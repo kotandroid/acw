@@ -48,6 +48,7 @@ class CrimeFragment() : Fragment(),DatePickerFragment.Callbacks,TimePickerFragme
     private lateinit var reportbutton:Button
     private lateinit var suspectButton:Button
     private lateinit var callButton:Button
+    private lateinit var callIntent:Intent
 
     private val crimeDetailViewModel:CrimeDetailViewModel by lazy{
         ViewModelProvider(this).get(CrimeDetailViewModel::class.java)
@@ -212,14 +213,16 @@ class CrimeFragment() : Fragment(),DatePickerFragment.Callbacks,TimePickerFragme
         }
 
         //용의자 선택 버튼 설정
-
         suspectButton.apply {
             val pickContactIntent =
-                Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
+                Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
+            //연락처에서 사람을 선택하여 activityresult에서 intent로 선택한 사람의 data를 받아 처리한다.
             setOnClickListener {
                 startActivityForResult(pickContactIntent, REQUEST_CONTACT_NAME)
             }
-    DateFormat.be
+
+
+
             //만약 연락처 어플이 없을 경우 앱이 중단되기 때문에 없을 경우 버튼 누르기를 비활성화 하도록 한다.
             val packageManager: PackageManager = requireActivity().packageManager //안드로이드 운영체제의 일부
             val resolvedActivity: ResolveInfo? =
@@ -240,12 +243,10 @@ class CrimeFragment() : Fragment(),DatePickerFragment.Callbacks,TimePickerFragme
                 isEnabled = false
                 text = "용의자 없음"
             } else {
-                Intent(Intent.ACTION_DIAL).apply {
-                    putExtra(Intent.EXTRA_TEXT, getCrimeReport()) // 내용
-                    putExtra(Intent.EXTRA_SUBJECT, getString(R.string.crime_report_subject))
 
+                setOnClickListener {
+                    startActivity(callIntent)
                 }
-
             }
         }
     }
@@ -276,35 +277,55 @@ class CrimeFragment() : Fragment(),DatePickerFragment.Callbacks,TimePickerFragme
             resultCode!= Activity.RESULT_OK -> return
 
             requestCode== REQUEST_CONTACT_NAME && data !=null ->{
+
+
+
+
+
                 val contactUri: Uri =data.data?:return
-                val contentUri: Uri=
-                val queryFields=arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
-                val queryField_num= arrayOf(
-                    ContactsContract.CommonDataKinds.Phone.NUMBER
+                //콘텐츠 제공자의 table 담고 있다.
+
+
+                val queryField_name=arrayOf(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+                val queryField_num=arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER)
+
+
+                val cursor_name= requireActivity().contentResolver.query(
+                    contactUri,// uri
+                    queryField_name,// projection : The columns to return for each row
+                    null,
+                    null,
+                    null
+                )
+                val cursor_num= requireActivity().contentResolver.query(
+                    contactUri,
+                    queryField_num,
+                    null,
+                    null,
+                    null
                 )
 
-                val cursor=requireActivity().contentResolver.query(contactUri,queryFields,null,null,null)
-                val cursor_num=requireActivity().contentResolver.query(contactUri,queryField_num,null,null,null)
 
-                cursor?.use{
+
+                cursor_name?.use{
                     if(it.count==0){
                         return
-                    }
-                    it.moveToFirst()
-                    val suspect=it.getString(0)
-                    crime.suspect=suspect
+                    }// 용의자가 없으면 return
+                    it.moveToFirst()// 있을 경우 첫 행이 용의자에 대한 data
+                    val suspect_name=it.getString(0) // 첫행의 첫번째 열의 data
+                    crime.suspect=suspect_name
                     crimeDetailViewModel.saveCrime(crime)
-                    suspectButton.text=suspect
-
+                    suspectButton.text=suspect_name
+                    callButton.text=getString(R.string.crime_call,suspect_name)
                 }
                 cursor_num?.use{
                     if(it.count==0){
                         return
                     }
                     it.moveToFirst()
-                    val num=it.getString(1)
-                    Toast.makeText(context,num.toString(),Toast.LENGTH_SHORT).show()
-
+                    val suspect_num=it.getString(0)
+                    callIntent=Intent(Intent.ACTION_DIAL,Uri.parse("tel:"+suspect_num))
+                   Toast.makeText(context,suspect_num,Toast.LENGTH_SHORT).show()
                 }
 
             }
