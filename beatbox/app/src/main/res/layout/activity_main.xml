@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        >
+        <androidx.recyclerview.widget.RecyclerView
+
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+
+        </androidx.recyclerview.widget.RecyclerView>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="text"
+                    android:textAlignment="center"
+                    android:id="@+id/text_seekbar"
+                    />
+                <SeekBar
+                    android:id="@+id/seekBar2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100"
+                    android:layout_weight="1"
+                />
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+
+
+
+</layout>
+<!-- 레이아웃 태그는 이 레이아웃에 데이터 바인딩을 한다는 것을 나타낸다.
+이게 있으면 데이터 바인딩 라이브러리가 바인딩 클래스를 자동으로 생성한다.
+자동으로 생성되는 클래스이름은 이름 끝에 Binding이 붙은 채로 생성되기 때문에
+여기서는 ActivityMainBinding이라는 바인딩 클래스가 생성될 것이다.-->
