@@ -141,7 +141,9 @@ class CrimeFragment() : Fragment(),DatePickerFragment.Callbacks,TimePickerFragme
     }
     private fun updateUI(){
         titleField.setText(crime.title)
-        dateButton.text="date : "+crime.date.month+"월"+crime.date.date+"일 , "+(crime.date.year+1900)+"년"
+        //dateButton.text="date : "+crime.date.month+"월"+crime.date.date+"일 , "+(crime.date.year+1900)+"년"
+        val bestTimeFormat=DateFormat.getBestDateTimePattern(Locale.getDefault(),"MM/dd/yyyy hh:mm")
+        dateButton.text=DateFormat.format(bestTimeFormat,crime.date)
         //solvedCheckBox.isChecked=crime.isSolved     - animation수행
         timeButton.text="time: "+crime.date.hours+"시 "+crime.date.minutes+"분"
         solvedCheckBox.apply{
