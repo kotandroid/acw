@@ -2,6 +2,11 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools">
 
+    <data>
+        <variable
+            name="viewModel"
+            type="com.acw.android.beatbox.MainBindingViewModel" />
+    </data>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -23,7 +28,8 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    tools:text="text"
+                    android:text="@{viewModel.playSpeed.toString()}"
+                    tools:text="percentage"
                     android:textAlignment="center"
                     android:id="@+id/text_seekbar"
                     />
@@ -33,6 +39,8 @@
                     android:layout_height="wrap_content"
                     android:max="100"
                     android:layout_weight="1"
+                    android:progress="@={viewModel.playSpeed}"
+
                 />
 
         </LinearLayout>

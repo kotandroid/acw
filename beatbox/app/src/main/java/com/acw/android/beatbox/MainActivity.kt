@@ -2,6 +2,7 @@ package com.acw.android.beatbox
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.ViewGroup
 import android.widget.SeekBar
 import androidx.databinding.DataBindingUtil
@@ -11,28 +12,33 @@ import androidx.recyclerview.widget.RecyclerView
 import com.acw.android.beatbox.databinding.ActivityMainBinding
 import com.acw.android.beatbox.databinding.ListItemSoundBinding
 
+
+private const val TAG="MainActivity"
+
 class MainActivity : AppCompatActivity() {
-
-
 
     private val mainViewModel :MainViewModel by lazy{
         ViewModelProvider(this).get(MainViewModel::class.java)
     }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        Log.d(TAG,"onCreate")
 
         mainViewModel.beatBox= BeatBox(assets)// BeatBox에 asset폴더 전달
 
         val binding :ActivityMainBinding=
             DataBindingUtil.setContentView(this,R.layout.activity_main)
         //데이터 바인딩 클래스를 inflate
+        binding.viewModel= MainBindingViewModel(mainViewModel.beatBox)
 
         binding.recyclerView.apply{
             layoutManager=GridLayoutManager(context,3)
             adapter=SoundAdapter(mainViewModel.beatBox.sounds)
         }
-        binding.seekBar2.setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener{
+     /*   binding.seekBar2.setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener{
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
                 binding.textSeekbar.text=p1.toString()
                 mainViewModel.beatBox.speed=p1.toFloat()
@@ -45,7 +51,7 @@ class MainActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(p0: SeekBar?) {
 
             }
-        })
+        })*/
     }
 
 
@@ -89,5 +95,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        Log.d(TAG,"onDestroy")
+
     }
 }
