@@ -19,12 +19,13 @@ private const val TAG="FlickrFetchr"
 
 class FlickrFetchr {
 
-    private val flickrApi: FlickrApi
+    val flickrApi: FlickrApi
     init{
-        val gson: Gson=GsonBuilder()
+        val gson: Gson=GsonBuilder().registerTypeAdapter(PhotoResponse::class.java,PhotoDeserializer()).create()
+
         val retrofit :Retrofit=Retrofit.Builder()
             .baseUrl("https://api.flickr.com/")
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
 
         flickrApi=retrofit.create(FlickrApi::class.java)
@@ -32,15 +33,15 @@ class FlickrFetchr {
 
     fun fetchPhotos(): LiveData<List<GalleryItem>> {
         val responseLiveData: MutableLiveData<List<GalleryItem>> = MutableLiveData()
-        val flickrRequest: Call<FlickrResponse> = flickrApi.fetchPhotos()
+        val flickrRequest: Call<PhotoResponse> = flickrApi.fetchPhotos()
 
-        flickrRequest.enqueue(object :Callback<FlickrResponse>{
+        flickrRequest.enqueue(object :Callback<PhotoResponse>{
 
-            override fun onFailure(call: Call<FlickrResponse>, t: Throwable) {
+            override fun onFailure(call: Call<PhotoResponse>, t: Throwable) {
                 Log.e(TAG,"Failed to fetch photo",t)
             }
 
-            override fun onResponse(call: Call<FlickrResponse>, response: Response<FlickrResponse>) {
+            override fun onResponse(call: Call<PhotoResponse>, response: Response<PhotoResponse>) {
                 //서버로부터 응답이 수신되면 실행되는 callback함수
                 //Retrofit이 onResponse에 전달하는 response객체는 자신의 몸체에 결과 컨텐츠를 포함한다.
                 //여기서는 API인터페이스의 fetchContents()가 Call<String>을 반환하므로
@@ -50,8 +51,7 @@ class FlickrFetchr {
                 // 하지만 main thread에서의 network작업은 android에서 허용되지 않는다.
 
                 Log.d(TAG,"Response recieved")
-                val flickrResponse:FlickrResponse?=response.body()
-                val photoResponse:PhotoResponse?=flickrResponse?.photos
+                val photoResponse:PhotoResponse?=response?.body()
                 var galleryItem:List<GalleryItem> =  photoResponse?.galleryItems?: mutableListOf()
                 galleryItem=galleryItem.filterNot{
                     it.url.isBlank()
@@ -60,6 +60,28 @@ class FlickrFetchr {
             }
         })
         return responseLiveData
+    }
+    fun fetchPhotos2(): List<GalleryItem>{
+        lateinit var ret:List<GalleryItem>
+        val flickrRequest: Call<PhotoResponse> = flickrApi.fetchPhotos()
+        flickrRequest.enqueue(object :Callback<PhotoResponse>{
+
+            override fun onFailure(call: Call<PhotoResponse>, t: Throwable) {
+                Log.e(TAG,"Failed to fetch photo",t)
+            }
+
+            override fun onResponse(call: Call<PhotoResponse>, response: Response<PhotoResponse>) {
+
+                Log.d(TAG,"Response recieved")
+                val photoResponse:PhotoResponse?=response?.body()
+                var galleryItem:List<GalleryItem> =  photoResponse?.galleryItems?: mutableListOf()
+                galleryItem=galleryItem.filterNot{
+                    it.url.isBlank()
+                }//flickr의 이미지 중에는 urls필드 값이 없는 것도 있다. 따라서 여기서는 filterNot을 사용해서 그런 이미지 데이터를 걸러낸다.
+                ret=galleryItem
+            }
+        })
+        return ret
     }
 
 

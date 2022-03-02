@@ -12,7 +12,7 @@ interface FlickrApi {
     "&nojsoncallback=1"+
     "&extras=url_s")
 
-    fun fetchPhotos(): Call<FlickrResponse>
+    fun fetchPhotos(): Call<PhotoResponse>
 
     /*
 Call은 retrofit의 interface이다. 기본적으로 모든 Retrofit 웹 요청은 retrofit2.call 객체를 반환한다. Call객체는 실행할 수 있는 하나의 웹 요청을

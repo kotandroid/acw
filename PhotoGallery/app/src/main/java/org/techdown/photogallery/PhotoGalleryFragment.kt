@@ -10,6 +10,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.paging.PagingData
+import androidx.paging.PagingDataAdapter
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import retrofit2.Call
@@ -25,9 +28,9 @@ class PhotoGalleryFragment: Fragment() {
 
     private lateinit var photoRecyclerView:RecyclerView
     private lateinit var photoGalleryViewModel:PhotoGalleryViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
 
 
         photoGalleryViewModel=ViewModelProvider(this).get(PhotoGalleryViewModel::class.java)
@@ -53,12 +56,15 @@ class PhotoGalleryFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         photoGalleryViewModel.galleryItemLiveData.observe(
             viewLifecycleOwner,
             Observer{
                 galleryItems->
                 Log.d(TAG,"Have gallery from $galleryItems")
-                photoRecyclerView.adapter=PhotoAdapter(galleryItems)
+                     photoRecyclerView.adapter=PhotoAdapter(galleryItems)
+
+
             }
         )
     }
@@ -83,6 +89,7 @@ class PhotoGalleryFragment: Fragment() {
     private class PhotoHolder(itemTextView: TextView):RecyclerView.ViewHolder(itemTextView){
         val bindTitle:(CharSequence)->Unit=itemTextView::setText
     }
+
     private class PhotoAdapter(private val galleryItems:List<GalleryItem>)
         :RecyclerView.Adapter<PhotoHolder>(){
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoHolder {
