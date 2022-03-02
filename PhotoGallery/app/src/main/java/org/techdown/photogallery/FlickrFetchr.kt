@@ -3,6 +3,8 @@ package org.techdown.photogallery
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import org.techdown.photogallery.api.FlickrApi
 import org.techdown.photogallery.api.FlickrResponse
 import org.techdown.photogallery.api.PhotoResponse
@@ -19,6 +21,7 @@ class FlickrFetchr {
 
     private val flickrApi: FlickrApi
     init{
+        val gson: Gson=GsonBuilder()
         val retrofit :Retrofit=Retrofit.Builder()
             .baseUrl("https://api.flickr.com/")
             .addConverterFactory(GsonConverterFactory.create())
