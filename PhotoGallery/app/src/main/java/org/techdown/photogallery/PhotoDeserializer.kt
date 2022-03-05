@@ -14,12 +14,15 @@ class PhotoDeserializer : JsonDeserializer<PhotoResponse> {
         context: JsonDeserializationContext?
     ): PhotoResponse {
         // Json Element객체를 가져오고 Photo Response 객체로 변환
-        val jsonObject = json?.asJsonObject ?: throw NullPointerException("Response Json String is null")
-        val photoarr=jsonObject.get("photos").asJsonObject.get("photo").asJsonArray
-        val listOfGallery = photoarr.map { val photo=it.asJsonObject
-                                            GalleryItem(photo["title"].asString,photo["id"].asString,photo["url_s"].asString) }
+        val jsonObject =
+            json?.asJsonObject ?: throw NullPointerException("Response Json String is null")
+        val photoarr = jsonObject.get("photos").asJsonObject.get("photo").asJsonArray
+        val listOfGallery = photoarr.map {
+            val photo = it.asJsonObject
+            GalleryItem(photo["title"].asString, photo["id"].asString, photo["url_s"].asString)
+        }
 
-       return PhotoResponse().apply { galleryItems=listOfGallery }
+        return PhotoResponse().apply { galleryItems = listOfGallery }
 
     }
 }
