@@ -4,7 +4,9 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Study/kotlin/acw/PhotoGallery/app/src/main/res/layout/activity_photo_gallery.xml" value="0.22826086956521738" />
+        <entry key="..\:/Study/kotlin/acw/PhotoGallery/app/src/main/res/layout/activity_photo_page.xml" value="0.10833333333333334" />
         <entry key="..\:/Study/kotlin/acw/PhotoGallery/app/src/main/res/layout/fragment_photo_gallery.xml" value="0.22826086956521738" />
+        <entry key="..\:/Study/kotlin/acw/PhotoGallery/app/src/main/res/layout/fragment_photo_page.xml" value="0.2" />
         <entry key="..\:/Study/kotlin/acw/PhotoGallery/app/src/main/res/layout/list_item_gallery.xml" value="0.25364583333333335" />
         <entry key="..\:/Study/kotlin/acw/PhotoGallery/app/src/main/res/menu/fragment_photo_gallery.xml" value="0.4" />
       </map>

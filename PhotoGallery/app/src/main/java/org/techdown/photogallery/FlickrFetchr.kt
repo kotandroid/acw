@@ -2,6 +2,7 @@ package org.techdown.photogallery
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.provider.ContactsContract
 import android.util.Log
 import androidx.annotation.WorkerThread
 import androidx.lifecycle.LiveData
@@ -40,11 +41,21 @@ class FlickrFetchr {
         flickrApi=retrofit.create(FlickrApi::class.java)
     }
 
+    fun fetchPhotoRequest():Call<PhotoResponse>{
+        return flickrApi.fetchPhotos()
+    }
+
     fun fetchPhotos(): LiveData<List<GalleryItem>> {
-        return fetchPhotoMetadata(flickrApi.fetchPhotos())
+        Log.d(TAG,"fetchPhotos")
+        return fetchPhotoMetadata(fetchPhotoRequest())
+    }
+
+    fun searchPhotoRequest(query: String):Call<PhotoResponse>{
+        return flickrApi.searchPhotos(query)
     }
     fun searchPhotos(query:String):LiveData<List<GalleryItem>>{
-        return fetchPhotoMetadata(flickrApi.searchPhotos(query))
+        Log.d(TAG,"searchPhotos")
+        return fetchPhotoMetadata(searchPhotoRequest(query))
     }
 
     @WorkerThread

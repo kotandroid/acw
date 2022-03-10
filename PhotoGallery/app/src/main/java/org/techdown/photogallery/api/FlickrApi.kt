@@ -16,7 +16,7 @@ data type을 위와 같이 지정하게 되면 HTTP응답이 지정한 type으�
 
 */
 
-    @GET("services/rest?method=flickr.interestingess.getList")
+    @GET("services/rest?method=flickr.interestingness.getList")
     fun fetchPhotos(): Call<PhotoResponse>
 
     @GET

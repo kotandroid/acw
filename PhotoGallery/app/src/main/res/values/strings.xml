@@ -2,4 +2,9 @@
     <string name="app_name">PhotoGallery</string>
     <string name="search">searchsdasd</string>
     <string name="clear_search">clear</string>
+    <string name="notification_channel_name">FlickrFetchr</string>
+    <string name="new_pictures_title">new photogallery items</string>
+    <string name="new_pictures_text">There is new items in PhotoGallery</string>
+    <string name="start_polling">find new photos</string>
+    <string name="stop_polling">stop searching</string>
 </resources>

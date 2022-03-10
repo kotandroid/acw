@@ -1,5 +1,6 @@
 package org.techdown.photogallery
 
+import android.content.Intent
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
@@ -13,6 +14,7 @@ import android.widget.TextView
 import androidx.appcompat.resources.Compatibility.Api21Impl.inflate
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.startActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
@@ -20,16 +22,19 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.work.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import java.util.concurrent.TimeUnit
 
 
 private const val TAG="PhotoGalleryFragment"
+private const val POLL_WORK="POLL_WORK"
 
-class PhotoGalleryFragment: Fragment() {
+class PhotoGalleryFragment: VisibleFragment() {
 
     private lateinit var photoRecyclerView:RecyclerView
     private lateinit var photoGalleryViewModel:PhotoGalleryViewModel
@@ -50,6 +55,9 @@ class PhotoGalleryFragment: Fragment() {
                 photoHolder.bindDrawable(drawable)
             }
         lifecycle.addObserver(thumbnailDownloader.fragmentLifecycleObserver)
+
+
+
 
 
 
@@ -83,6 +91,15 @@ class PhotoGalleryFragment: Fragment() {
                 searchView.setQuery(photoGalleryViewModel.searchTerm,false)
             }
         }
+
+        val toggleItem=menu.findItem(R.id.menu_item_polling)
+        val isPolling=QueryPreferences.isPolling(requireContext())
+        val toggleItemTitle=if(isPolling){
+            R.string.stop_polling
+        }else{
+            R.string.start_polling
+        }
+        toggleItem.setTitle(toggleItemTitle)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -90,6 +107,29 @@ class PhotoGalleryFragment: Fragment() {
             R.id.menu_item_clear->{
                 photoGalleryViewModel.fetchPhotos("")
                 true
+            }
+            R.id.menu_item_polling->{
+                val isPolling=QueryPreferences.isPolling(requireContext())
+                if(isPolling){
+                    WorkManager.getInstance().cancelUniqueWork(POLL_WORK)
+                    QueryPreferences.setPolling(requireContext(),false)
+                }else{
+                    val constraints=Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.UNMETERED)
+                        .build() //비용이 들지 않는 네트워크를 사용하고 있을 때만 polling하도록 설정.
+
+                    val periodicRequest=PeriodicWorkRequest
+                        .Builder(PollWorker::class.java,15, TimeUnit.MINUTES)
+                        .setConstraints(constraints)
+                        .build()
+
+                    WorkManager.getInstance().enqueueUniquePeriodicWork(POLL_WORK,
+                    ExistingPeriodicWorkPolicy.KEEP,periodicRequest)
+
+                    QueryPreferences.setPolling(requireContext(),true)
+                }
+                activity?.invalidateOptionsMenu()
+                return true
             }
             else ->super.onOptionsItemSelected(item)
         }
@@ -144,8 +184,28 @@ class PhotoGalleryFragment: Fragment() {
 
 
 
-    private class PhotoHolder(private val itemImageView:ImageView):RecyclerView.ViewHolder(itemImageView){
+    private inner class PhotoHolder(private val itemImageView:ImageView):RecyclerView.ViewHolder(itemImageView),View.OnClickListener{
+
+        private lateinit var galleryItem:GalleryItem
+
+        init{
+            itemView.setOnClickListener(this)
+        }
+
         val bindDrawable:(Drawable)->Unit=itemImageView::setImageDrawable
+
+        fun bindGalleryItem(item:GalleryItem){
+            galleryItem=item
+        }
+
+        override fun onClick(v: View?) {
+            //val intent=Intent(Intent.ACTION_VIEW,galleryItem.photoPageUri)
+            val intent=PhotoPageActivity.newIntent(requireContext(),galleryItem.photoPageUri)
+            startActivity(intent)
+        }
+
+
+
     }
 
     private inner class PhotoAdapter(private val galleryItems:List<GalleryItem>)
@@ -161,6 +221,7 @@ class PhotoGalleryFragment: Fragment() {
 
         override fun onBindViewHolder(holder: PhotoHolder, position: Int) {
             val galleryItem=galleryItems[position]
+            holder.bindGalleryItem(galleryItem)
             val placeholder:Drawable = ContextCompat.getDrawable(
                 requireContext(),
                 R.drawable.img1

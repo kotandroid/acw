@@ -2,18 +2,24 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.techdown.photogallery">
 
+    <permission
+        android:name="org.techdown.photogallery.PRIVATE"
+        android:protectionLevel="signature" />
 
-
-    <uses-permission android:name="android.permission.INTERNET"/>
-
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="org.techdown.photogallery.PRIVATE" />
 
     <application
+        android:name=".PhotoGalleryApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PhotoGallery">
+        <activity
+            android:name=".PhotoPageActivity"
+            android:exported="false" />
         <activity
             android:name=".PhotoGalleryActivity"
             android:exported="true">
@@ -23,6 +29,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".NotificationReciever"
+            android:exported="true"
+            android:permission="org.techdown.photogallery.PRIVATE">
+            <intent-filter>
+                <action android:name="org.techdown.photogallery.SHOW_NOTIFICATION" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
