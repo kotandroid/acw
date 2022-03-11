@@ -1,18 +1,23 @@
 package org.techdown.sunset
 
-import android.animation.AnimatorSet
-import android.animation.ArgbEvaluator
-import android.animation.ObjectAnimator
+import android.animation.*
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.renderscript.Sampler
+import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateInterpolator
+import androidx.annotation.RequiresApi
+import androidx.core.animation.addListener
 import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
     private lateinit var sceneView:View
     private lateinit var sunView:View
     private lateinit var skyView:View
+    private lateinit var animatorSet: AnimatorSet
+    private var sunflag=true
 
     private val blueSkyColor :Int by lazy{
         ContextCompat.getColor(this,R.color.blue_sky)
@@ -25,6 +30,9 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -34,6 +42,9 @@ class MainActivity : AppCompatActivity() {
         sunView=findViewById(R.id.sun)
         skyView=findViewById(R.id.sky)
 
+        animatorSet= AnimatorSet()
+
+
 
         sceneView.setOnClickListener{
             startAnimation()
@@ -41,60 +52,64 @@ class MainActivity : AppCompatActivity() {
 
 
     }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun startAnimation(){
+
         val sunYStart=sunView.top.toFloat()
         val sunYEnd=skyView.height.toFloat()
 
-        val heightAnimator=ObjectAnimator
-            .ofFloat(sunView,"y",sunYStart,sunYEnd)
-            .setDuration(3000)
-        heightAnimator.interpolator=AccelerateInterpolator()
+        val brightAnimator=ObjectAnimator
+            .ofInt(sunView,"backgroundColor",blueSkyColor,sunsetSkyColor)
+            .setDuration(500)
+        brightAnimator.setEvaluator(ArgbEvaluator())
+        brightAnimator.repeatCount=ValueAnimator.INFINITE
+
+        val heightAnimator=
+            ObjectAnimator
+                .ofFloat(sunView,"y",sunYStart,sunYEnd)
+                .setDuration(1500)
+
 
         val sunsetSkyAnimator=ObjectAnimator
             .ofInt(skyView,"backgroundColor",blueSkyColor,sunsetSkyColor)
-            .setDuration(3000)
+            .setDuration(1500)
+
         sunsetSkyAnimator.setEvaluator(ArgbEvaluator())
 
         val nightSkyAnimator=ObjectAnimator
             .ofInt(skyView,"backgroundColor",sunsetSkyColor,nightSkyColor)
-            .setDuration(1500)
+            .setDuration(700)
         nightSkyAnimator.setEvaluator(ArgbEvaluator())
 
 
-        val heightAnimator2=ObjectAnimator
-            .ofFloat(sunView,"y",sunYEnd,sunYStart)
-            .setDuration(3000)
-        heightAnimator.interpolator=AccelerateInterpolator()
 
-        val sunsetSkyAnimator2=ObjectAnimator
-            .ofInt(skyView,"backgroundColor",sunsetSkyColor,blueSkyColor)
-            .setDuration(3000)
-        sunsetSkyAnimator2.setEvaluator(ArgbEvaluator())
-
-        val nightSkyAnimator2=ObjectAnimator
-            .ofInt(skyView,"backgroundColor",nightSkyColor,sunsetSkyColor)
-            .setDuration(1500)
-        nightSkyAnimator2.setEvaluator(ArgbEvaluator())
-
-        val animator2_sub=AnimatorSet()
-        animator2_sub.play(heightAnimator2)
-            .with(sunsetSkyAnimator2)
-
-        val animatorSet2= AnimatorSet()
-        animatorSet2.play(nightSkyAnimator2)
-            .before(animator2_sub)
-
-
-
-
-        val animatorSet= AnimatorSet()
-        animatorSet.play(heightAnimator)
-            .with(sunsetSkyAnimator)
+        animatorSet
+            .play(heightAnimator).with(sunsetSkyAnimator)
             .before(nightSkyAnimator)
-            .before(animatorSet2)
 
 
-        animatorSet.start()
+        val currentTime=animatorSet.currentPlayTime
+            if(sunflag) {
+                //해가 떠있을 때 , 해가 뜨고있을 때 터치
+                Log.d("main","3    "+animatorSet.currentPlayTime+"         "+animatorSet.totalDuration)
+
+                animatorSet.start()
+                animatorSet.currentPlayTime=if(currentTime==0.toLong()) 0 else animatorSet.totalDuration-animatorSet.currentPlayTime
+
+                sunflag=false
+            }else{
+                //해가 져있을 때, 해가 지고 있을 때 터치
+
+                    Log.d("main","4       "+animatorSet.currentPlayTime)
+
+                animatorSet.reverse()
+                animatorSet.currentPlayTime=if(currentTime==0.toLong()) 0 else animatorSet.totalDuration-animatorSet.currentPlayTime
+
+                sunflag=true
+
+            }
+
 
 
 
